@@ -615,7 +615,7 @@ def main():
     st.title("Machine Learning Tool")
 
     st.sidebar.title("Navigation")
-    options = ["Upload Data", "Data Information", "Dataframe Manipulation", "Graphs", "Hypothesis Testing", "Machine Learning"]
+    options = ["Upload Data", "Data Information", "Dataframe Modification", "Graphs", "Hypothesis Testing", "Machine Learning"]
     choice = st.sidebar.radio("Choose an option", options)
 
     if choice == "Upload Data":
