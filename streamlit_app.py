@@ -136,8 +136,8 @@ def label_encode_columns(df, columns_to_encode, ordered_unique_values):
     return df, encoded_info
     
 
-def dataframe_manipulation():
-    st.sidebar.header("Dataframe Manipulation")
+def dataframe_modification():
+    st.sidebar.header("Dataframe Modification")
     
     selected_df = st.selectbox("Select DataFrame", st.session_state.dataframes.keys())
     df = st.session_state.dataframes[selected_df].copy()
@@ -632,9 +632,9 @@ def main():
     elif choice == "Data Information":
         display_basic_info()
 
-    elif choice == "Dataframe Manipulation":
+    elif choice == "Dataframe Modification":
         if "Original" in st.session_state.dataframes:
-            dataframe_manipulation()
+            dataframe_modification()
         else:
             st.warning("Please upload a dataset first.")
 
