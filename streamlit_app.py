@@ -25,6 +25,7 @@ from keras.utils import to_categorical
 import inspect
 import io
 import contextlib
+from sklearn.metrics import silhouette_score
 
 
 # Function to initialize session state
