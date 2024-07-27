@@ -604,7 +604,7 @@ def machine_learning():
             
             elif problem_type == "Clustering":
                 clustering_models = {
-                    "KMeans": KMeans(),
+                    "KMeans": KMeans(n_init=10),  # You can specify n_init to avoid warnings
                     "Agglomerative Clustering": AgglomerativeClustering(),
                     "DBSCAN": DBSCAN()
                 }
@@ -614,15 +614,24 @@ def machine_learning():
                     for name in selected_models:
                         model = clustering_models[name]
                         model.fit(X)
-                        labels = model.labels_
-                        st.write(f"{name} clustering labels:")
-                        st.write(labels)
-                        if hasattr(model, 'cluster_centers_'):
-                            st.write(f"{name} cluster centers:")
-                            st.write(model.cluster_centers_)
-                        silhouette_avg = silhouette_score(X, labels)
-                        st.write(f"{name} Silhouette Score: {silhouette_avg}")
-            
+                        
+                        if hasattr(model, 'labels_'):
+                            labels = model.labels_
+                            st.write(f"{name} clustering labels:")
+                            st.write(labels)
+                            
+                            if hasattr(model, 'cluster_centers_'):
+                                st.write(f"{name} cluster centers:")
+                                st.write(model.cluster_centers_)
+                            
+                            # Compute silhouette score only if there is more than one cluster
+                            if len(set(labels)) > 1:
+                                silhouette_avg = silhouette_score(X, labels)
+                                st.write(f"{name} Silhouette Score: {silhouette_avg}")
+                            else:
+                                st.write(f"{name} Silhouette Score: Cannot compute because only one cluster was found.")
+                        else:
+                            st.write(f"{name} does not have attribute 'labels_' to compute clustering results.")
             elif problem_type == "Unsupervised Learning":
                 unsupervised_models = {
                     "PCA": PCA(),
