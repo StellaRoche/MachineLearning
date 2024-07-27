@@ -442,35 +442,34 @@ def hypothesis_testing():
 
     if df is not None and st.sidebar.checkbox("Perform hypothesis testing"):
         st.subheader("Hypothesis Testing")
+
+        # Get user-defined p-value threshold
+        alpha = st.number_input("Significance level (alpha)", min_value=0.0, max_value=1.0, value=0.05)
+
+        test_type = st.selectbox("Choose test type", ["One Sample T-test", "Two Sample T-test", "ANOVA", "Chi-square", "Correlation Coefficient"])
         
-        test_type = st.selectbox("Choose test type", ["One Sample T-test", "Two Sample T-test","ANOVA", "Chi-square","Correlation Coefficient"])
         if test_type == "One Sample T-test":
             column = st.selectbox("Choose column", df.columns)
             popmean = st.number_input("Population mean", value=0.0)
             if st.button("Perform One Sample T-test"):
                 t_stat, p_val = ttest_1samp(df[column].dropna(), popmean)
-               
-                if p_val <= 0.05:
-                    st.write(f"T-statistic: {t_stat}, P-value: {p_val}")
-                    st.write("Conclusion: Since the p-value is less than or equal to 0.05, there is strong evidence against the null hypothesis. Therefore, we reject the null hypothesis.")
+                st.write(f"T-statistic: {t_stat}, P-value: {p_val}")
+                if p_val <= alpha:
+                    st.write(f"Conclusion: Since the p-value is less than or equal to {alpha}, there is strong evidence against the null hypothesis. Therefore, we reject the null hypothesis.")
                 else:
-                    st.write(f"T-statistic: {t_stat}, P-value: {p_val}")
-                    st.write("Conclusion: Since the p-value is greater than 0.05, we do not have sufficient evidence to reject the null hypothesis. Therefore, we accept the null hypothesis.")
+                    st.write(f"Conclusion: Since the p-value is greater than {alpha}, we do not have sufficient evidence to reject the null hypothesis. Therefore, we accept the null hypothesis.")
 
         elif test_type == "Two Sample T-test":
             column1 = st.selectbox("Choose first column", df.columns)
             column2 = st.selectbox("Choose second column", df.columns)
             if st.button("Perform Two Sample T-test"):
                 t_stat, p_val = ttest_ind(df[column1].dropna(), df[column2].dropna())
-               
-                if p_val <= 0.05:
-                    st.write(f"T-statistic: {t_stat}, P-value: {p_val}")
-                    st.write("Conclusion: Since the p-value is less than or equal to 0.05, there is strong evidence against the null hypothesis. Therefore, we reject the null hypothesis.")
+                st.write(f"T-statistic: {t_stat}, P-value: {p_val}")
+                if p_val <= alpha:
+                    st.write(f"Conclusion: Since the p-value is less than or equal to {alpha}, there is strong evidence against the null hypothesis. Therefore, we reject the null hypothesis.")
                 else:
-                    st.write(f"T-statistic: {t_stat}, P-value: {p_val}")
-                    st.write("Conclusion: Since the p-value is greater than 0.05, we do not have sufficient evidence to reject the null hypothesis. Therefore, we accept the null hypothesis.")
+                    st.write(f"Conclusion: Since the p-value is greater than {alpha}, we do not have sufficient evidence to reject the null hypothesis. Therefore, we accept the null hypothesis.")
 
-                        
         elif test_type == "ANOVA":
             numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
             non_numeric_columns = df.select_dtypes(exclude=[np.number]).columns.tolist()
@@ -489,13 +488,11 @@ def hypothesis_testing():
                                 st.write("Columns considered for ANOVA:", accepted_columns)
                                 if rejected_columns:
                                     st.warning(f"These columns were not suitable for ANOVA due to non-numeric data types: {rejected_columns}")
-                                if p_val <= 0.05:
-                                    st.write(f"F-statistic: {f_stat}, P-value: {p_val}")
-                                    st.write("Conclusion: Since the p-value is less than or equal to 0.05, there is strong evidence against the null hypothesis. Therefore, we reject the null hypothesis.")
+                                st.write(f"F-statistic: {f_stat}, P-value: {p_val}")
+                                if p_val <= alpha:
+                                    st.write(f"Conclusion: Since the p-value is less than or equal to {alpha}, there is strong evidence against the null hypothesis. Therefore, we reject the null hypothesis.")
                                 else:
-                                    st.write(f"F-statistic: {f_stat}, P-value: {p_val}")
-                                    st.write("Conclusion: Since the p-value is greater than 0.05, we do not have sufficient evidence to reject the null hypothesis. Therefore, we accept the null hypothesis.")
-
+                                    st.write(f"Conclusion: Since the p-value is greater than {alpha}, we do not have sufficient evidence to reject the null hypothesis. Therefore, we accept the null hypothesis.")
                             except Exception as e:
                                 st.error(f"Error performing ANOVA: {e}")
                     else:
@@ -505,7 +502,6 @@ def hypothesis_testing():
             else:
                 st.write("No numeric columns available for ANOVA.")
 
-
         elif test_type == "Correlation Coefficient":
             column1 = st.selectbox("Choose first column", df.columns)
             column2 = st.selectbox("Choose second column", df.columns)
@@ -514,7 +510,6 @@ def hypothesis_testing():
                 st.write(f"Correlation Coefficient: {corr_coef}")
                 st.write("Explanation: A value close to 1 implies a strong positive correlation, close to -1 implies a strong negative correlation, and around 0 implies no correlation.")
 
-            
         elif test_type == "Chi-square":
             categorical_columns = df.select_dtypes(include=['object', 'category']).columns.tolist()
             col1 = st.selectbox("Select first categorical column", categorical_columns)
@@ -524,7 +519,7 @@ def hypothesis_testing():
                 chi2_stat, p_value, dof, expected = stats.chi2_contingency(contingency_table)
                 st.write("Chi-square test results:")
                 st.write(pd.DataFrame({"Chi2-statistic": [chi2_stat], "p-value": [p_value], "degrees of freedom": [dof]}))
-                st.write("Explanation: A low p-value (< 0.05) indicates that we can reject the null hypothesis, suggesting a significant association between the two categorical variables.")
+                st.write("Explanation: A low p-value (< {alpha}) indicates that we can reject the null hypothesis, suggesting a significant association between the two categorical variables.")
 
 # Function for machine learning
 def machine_learning():
@@ -547,157 +542,171 @@ def machine_learning():
         X = df[feature_columns]
         y = df[target_column]
         
-        if problem_type in ["Regression", "Classification"]:
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
-        
-        if problem_type == "Regression":
-            regression_models = {
-                "Linear Regression": LinearRegression(),
-                "Ridge Regression": Ridge(),
-                "Lasso Regression": Lasso(),
-                "ElasticNet": ElasticNet(),
-                "Decision Tree Regressor": DecisionTreeRegressor(),
-                "Random Forest Regressor": RandomForestRegressor(),
-                "Gradient Boosting Regressor": GradientBoostingRegressor(),
-                "SVR": SVR(),
-                "LightGBM Regressor": lgb.LGBMRegressor()
-            }
-            selected_models = st.multiselect("Select regression models", list(regression_models.keys()), default=list(regression_models.keys()))
+        try:
+            if problem_type in ["Regression", "Classification"]:
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
             
-            if st.button("Train regression models"):
-                results = []
-                for name in selected_models:
-                    model = regression_models[name]
-                    model.fit(X_train, y_train)
-                    predictions = model.predict(X_test)
-                    mse = mean_squared_error(y_test, predictions)
-                    r2 = r2_score(y_test, predictions)
-                    results.append({"Model": name, "Mean Squared Error": mse, "R2 Score": r2})
+            if problem_type == "Regression":
+                regression_models = {
+                    "Linear Regression": LinearRegression(),
+                    "Ridge Regression": Ridge(),
+                    "Lasso Regression": Lasso(),
+                    "ElasticNet": ElasticNet(),
+                    "Decision Tree Regressor": DecisionTreeRegressor(),
+                    "Random Forest Regressor": RandomForestRegressor(),
+                    "Gradient Boosting Regressor": GradientBoostingRegressor(),
+                    "SVR": SVR(),
+                    "LightGBM Regressor": lgb.LGBMRegressor()
+                }
+                selected_models = st.multiselect("Select regression models", list(regression_models.keys()), default=list(regression_models.keys()))
                 
-                st.write("Regression model performance:")
-                st.write(pd.DataFrame(results))
-        
-        elif problem_type == "Classification":
-            classification_models = {
-                "Decision Tree": DecisionTreeClassifier(),
-                "Random Forest": RandomForestClassifier(),
-                "Gradient Boosting": GradientBoostingClassifier(),
-                "SVM": SVC(),
-                "LightGBM": lgb.LGBMClassifier(),
-                "Logistic Regression": LogisticRegression(),
-                "K-Nearest Neighbors": KNeighborsClassifier(),
-                "Naive Bayes": GaussianNB()
-            }
-            selected_models = st.multiselect("Select classification models", list(classification_models.keys()), default=list(classification_models.keys()))
-            
-            if st.button("Train classification models"):
-                results = []
-                for name in selected_models:
-                    model = classification_models[name]
-                    model.fit(X_train, y_train)
-                    predictions = model.predict(X_test)
-                    accuracy = accuracy_score(y_test, predictions)
-                    precision = precision_score(y_test, predictions, average='weighted')
-                    recall = recall_score(y_test, predictions, average='weighted')
-                    f1 = f1_score(y_test, predictions, average='weighted')
-                    results.append({"Model": name, "Accuracy": accuracy, "Precision": precision, "Recall": recall, "F1 Score": f1})
-                
-                st.write("Classification model performance:")
-                st.write(pd.DataFrame(results))
-        
-        elif problem_type == "Clustering":
-            clustering_models = {
-                "KMeans": KMeans(),
-                "Agglomerative Clustering": AgglomerativeClustering(),
-                "DBSCAN": DBSCAN()
-            }
-            selected_models = st.multiselect("Select clustering models", list(clustering_models.keys()), default=list(clustering_models.keys()))
-            
-            if st.button("Train clustering models"):
-                for name in selected_models:
-                    model = clustering_models[name]
-                    model.fit(X)
-                    labels = model.labels_
-                    st.write(f"{name} clustering labels:")
-                    st.write(labels)
-                    if hasattr(model, 'cluster_centers_'):
-                        st.write(f"{name} cluster centers:")
-                        st.write(model.cluster_centers_)
-                    silhouette_avg = silhouette_score(X, labels)
-                    st.write(f"{name} Silhouette Score: {silhouette_avg}")
-        
-        elif problem_type == "Unsupervised Learning":
-            unsupervised_models = {
-                "PCA": PCA(),
-                "t-SNE": TSNE(),
-                "Autoencoder": Sequential([
-                    Dense(64, activation='relu', input_shape=(X.shape[1],)),
-                    Dense(32, activation='relu'),
-                    Dense(64, activation='relu'),
-                    Dense(X.shape[1], activation='sigmoid')
-                ])
-            }
-            selected_models = st.multiselect("Select unsupervised learning models", list(unsupervised_models.keys()), default=list(unsupervised_models.keys()))
-            
-            if st.button("Apply unsupervised models"):
-                for name in selected_models:
-                    model = unsupervised_models[name]
-                    if name == "PCA" or name == "t-SNE":
-                        transformed_data = model.fit_transform(X)
-                        st.write(f"{name} transformed data:")
-                        st.write(transformed_data)
-                        if name == "PCA":
-                            st.write("Explained variance ratio:")
-                            st.write(model.explained_variance_ratio_)
-                    elif name == "Autoencoder":
-                        model.compile(optimizer='adam', loss='mean_squared_error')
-                        model.fit(X, X, epochs=50, batch_size=256, shuffle=True, validation_data=(X, X))
-                        encoded_data = model.predict(X)
-                        st.write("Autoencoder encoded data:")
-                        st.write(encoded_data)
-        
-        # Adding Neural Networks
-        if problem_type in ["Regression", "Classification"]:
-            if st.checkbox("Include Neural Network"):
-                if problem_type == "Regression":
-                    nn_model = Sequential([
-                        Dense(64, activation='relu', input_shape=(X.shape[1],)),
-                        Dense(32, activation='relu'),
-                        Dense(1)
-                    ])
-                elif problem_type == "Classification":
-                    y_train_encoded = to_categorical(y_train)  # One-hot encode the target
-                    y_test_encoded = to_categorical(y_test)  # One-hot encode the target
-                    nn_model = Sequential([
-                        Dense(64, activation='relu', input_shape=(X.shape[1],)),
-                        Dense(32, activation='relu'),
-                        Dense(y_train_encoded.shape[1], activation='softmax')  # Output layer should match the number of classes
-                    ])
-                nn_model.compile(optimizer='adam', loss='mean_squared_error' if problem_type == "Regression" else 'categorical_crossentropy', metrics=['accuracy'])
-                
-                if st.button("Train Neural Network"):
-                    if problem_type == "Regression":
-                        nn_model.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2)
-                        predictions = nn_model.predict(X_test)
+                if st.button("Train regression models"):
+                    results = []
+                    for name in selected_models:
+                        model = regression_models[name]
+                        model.fit(X_train, y_train)
+                        predictions = model.predict(X_test)
                         mse = mean_squared_error(y_test, predictions)
                         r2 = r2_score(y_test, predictions)
-                        st.write("Neural Network Regression model performance:")
-                        st.write(pd.DataFrame({"Mean Squared Error": [mse], "R2 Score": [r2]}))
-                    elif problem_type == "Classification":
-                        nn_model.fit(X_train, y_train_encoded, epochs=50, batch_size=32, validation_split=0.2)
-                        predictions = nn_model.predict(X_test)
-                        predictions = np.argmax(predictions, axis=1)
+                        results.append({"Model": name, "Mean Squared Error": mse, "R2 Score": r2})
+                    
+                    st.write("Regression model performance:")
+                    st.write(pd.DataFrame(results))
+            
+            elif problem_type == "Classification":
+                classification_models = {
+                    "Decision Tree": DecisionTreeClassifier(),
+                    "Random Forest": RandomForestClassifier(),
+                    "Gradient Boosting": GradientBoostingClassifier(),
+                    "SVM": SVC(),
+                    "LightGBM": lgb.LGBMClassifier(),
+                    "Logistic Regression": LogisticRegression(),
+                    "K-Nearest Neighbors": KNeighborsClassifier(),
+                    "Naive Bayes": GaussianNB()
+                }
+                selected_models = st.multiselect("Select classification models", list(classification_models.keys()), default=list(classification_models.keys()))
+                
+                if st.button("Train classification models"):
+                    results = []
+                    for name in selected_models:
+                        model = classification_models[name]
+                        model.fit(X_train, y_train)
+                        predictions = model.predict(X_test)
                         accuracy = accuracy_score(y_test, predictions)
                         precision = precision_score(y_test, predictions, average='weighted')
                         recall = recall_score(y_test, predictions, average='weighted')
                         f1 = f1_score(y_test, predictions, average='weighted')
-                        st.write("Neural Network Classification model performance:")
-                        st.write(pd.DataFrame({
-                            "Accuracy": [accuracy],
-                            "Precision": [precision],
-                            "Recall": [recall],
-                            "F1 Score": [f1]
-                        }))
+                        results.append({"Model": name, "Accuracy": accuracy, "Precision": precision, "Recall": recall, "F1 Score": f1})
+                    
+                    st.write("Classification model performance:")
+                    st.write(pd.DataFrame(results))
+            
+            elif problem_type == "Clustering":
+                clustering_models = {
+                    "KMeans": KMeans(),
+                    "Agglomerative Clustering": AgglomerativeClustering(),
+                    "DBSCAN": DBSCAN()
+                }
+                selected_models = st.multiselect("Select clustering models", list(clustering_models.keys()), default=list(clustering_models.keys()))
+                
+                if st.button("Train clustering models"):
+                    for name in selected_models:
+                        model = clustering_models[name]
+                        model.fit(X)
+                        labels = model.labels_
+                        st.write(f"{name} clustering labels:")
+                        st.write(labels)
+                        if hasattr(model, 'cluster_centers_'):
+                            st.write(f"{name} cluster centers:")
+                            st.write(model.cluster_centers_)
+                        silhouette_avg = silhouette_score(X, labels)
+                        st.write(f"{name} Silhouette Score: {silhouette_avg}")
+            
+            elif problem_type == "Unsupervised Learning":
+                unsupervised_models = {
+                    "PCA": PCA(),
+                    "t-SNE": TSNE(),
+                    "Autoencoder": Sequential([
+                        Dense(64, activation='relu', input_shape=(X.shape[1],)),
+                        Dense(32, activation='relu'),
+                        Dense(64, activation='relu'),
+                        Dense(X.shape[1], activation='sigmoid')
+                    ])
+                }
+                selected_models = st.multiselect("Select unsupervised learning models", list(unsupervised_models.keys()), default=list(unsupervised_models.keys()))
+                
+                if st.button("Apply unsupervised models"):
+                    for name in selected_models:
+                        model = unsupervised_models[name]
+                        if name == "PCA" or name == "t-SNE":
+                            transformed_data = model.fit_transform(X)
+                            st.write(f"{name} transformed data:")
+                            st.write(transformed_data)
+                            if name == "PCA":
+                                st.write("Explained variance ratio:")
+                                st.write(model.explained_variance_ratio_)
+                        elif name == "Autoencoder":
+                            model.compile(optimizer='adam', loss='mean_squared_error')
+                            model.fit(X, X, epochs=st.slider("Select number of epochs for Autoencoder", 1, 100, 50), 
+                                      batch_size=st.slider("Select batch size for Autoencoder", 16, 256, 32), 
+                                      shuffle=True, 
+                                      validation_data=(X, X))
+                            encoded_data = model.predict(X)
+                            st.write("Autoencoder encoded data:")
+                            st.write(encoded_data)
+        
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
+        # Adding Neural Networks
+        try:
+            if problem_type in ["Regression", "Classification"]:
+                if st.checkbox("Include Neural Network"):
+                    epochs = st.slider("Select number of epochs", 1, 100, 50)
+                    batch_size = st.slider("Select batch size", 16, 256, 32)
+                    
+                    if problem_type == "Regression":
+                        nn_model = Sequential([
+                            Dense(64, activation='relu', input_shape=(X.shape[1],)),
+                            Dense(32, activation='relu'),
+                            Dense(1)
+                        ])
+                    elif problem_type == "Classification":
+                        y_train_encoded = to_categorical(y_train)  # One-hot encode the target
+                        y_test_encoded = to_categorical(y_test)  # One-hot encode the target
+                        nn_model = Sequential([
+                            Dense(64, activation='relu', input_shape=(X.shape[1],)),
+                            Dense(32, activation='relu'),
+                            Dense(y_train_encoded.shape[1], activation='softmax')  # Output layer should match the number of classes
+                        ])
+                    nn_model.compile(optimizer='adam', loss='mean_squared_error' if problem_type == "Regression" else 'categorical_crossentropy', metrics=['accuracy'])
+                    
+                    if st.button("Train Neural Network"):
+                        if problem_type == "Regression":
+                            nn_model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, validation_split=0.2)
+                            predictions = nn_model.predict(X_test)
+                            mse = mean_squared_error(y_test, predictions)
+                            r2 = r2_score(y_test, predictions)
+                            st.write("Neural Network Regression model performance:")
+                            st.write(pd.DataFrame({"Mean Squared Error": [mse], "R2 Score": [r2]}))
+                        elif problem_type == "Classification":
+                            nn_model.fit(X_train, y_train_encoded, epochs=epochs, batch_size=batch_size, validation_split=0.2)
+                            predictions = nn_model.predict(X_test)
+                            predictions = np.argmax(predictions, axis=1)
+                            accuracy = accuracy_score(y_test, predictions)
+                            precision = precision_score(y_test, predictions, average='weighted')
+                            recall = recall_score(y_test, predictions, average='weighted')
+                            f1 = f1_score(y_test, predictions, average='weighted')
+                            st.write("Neural Network Classification model performance:")
+                            st.write(pd.DataFrame({
+                                "Accuracy": [accuracy],
+                                "Precision": [precision],
+                                "Recall": [recall],
+                                "F1 Score": [f1]
+                            }))
+        
+        except Exception as e:
+            st.error(f"An error occurred during neural network training: {e}")
 def show_source_code():
     # Define your password here
     PASSWORD = "Fun"  # Change this to your desired password
