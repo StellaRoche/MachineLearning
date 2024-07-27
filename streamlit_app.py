@@ -22,12 +22,17 @@ from keras.models import Sequential
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 from keras.utils import to_categorical
+import inspect
+import io
+import contextlib
+
 
 # Function to initialize session state
 def initialize_session_state():
+    
+   
     if "dataframes" not in st.session_state:
         st.session_state.dataframes = {}
-
 # Function to load data from different sources
 def load_data(source):
     if isinstance(source, str):
@@ -162,7 +167,7 @@ def dataframe_modification():
                 st.write("Dataframe after dropping duplicates")
                 df = df.drop_duplicates()
                 st.write(df)
-            
+          
 
 
 
@@ -610,12 +615,120 @@ def machine_learning():
                             "Recall": [recall],
                             "F1 Score": [f1]
                         }))
+def show_source_code():
+    # Define your password here
+    PASSWORD = "Fun"  # Change this to your desired password
+    
+    # Input field for password
+    entered_password = st.text_input("Enter password to view source code", type="password")
+    
+    if entered_password == PASSWORD:
+        # Show source code if password is correct
+        function_list = [
+            "initialize_session_state",
+            "load_data",
+            "display_basic_info",
+            "dataframe_modification",
+            "display_graphs",
+            "hypothesis_testing",
+            "machine_learning"
+        ]
+        selected_function = st.selectbox("Select a function to view its source code", function_list)
+        
+        if selected_function:
+            function_source_code = inspect.getsource(globals()[selected_function])
+            st.code(function_source_code, language='python')
+    else:
+        # Show a message if the password is incorrect or not entered
+        if entered_password:
+            st.warning("Incorrect password. Please try again.")
+
+
+
+def execute_code():
+    # Input area for code to be executed
+    code = st.text_area("Type your Python code here", height=200)
+    
+    # Dropdown to select which DataFrame to use
+    selected_df_name = st.selectbox("Select DataFrame for Code Execution", st.session_state.dataframes.keys())
+    original_df = st.session_state.dataframes.get(selected_df_name)
+    
+    if original_df is None:
+        st.warning("No DataFrame selected or found in session state.")
+        return
+
+    exec_locals = {"df": original_df.copy()}  # Initialize exec_locals with a copy of the selected DataFrame
+
+    # Button to run the code
+    if st.button("Run Code"):
+        output = io.StringIO()
+        exec_globals = globals().copy()
+        exec_globals.update({"st": st, "pd": pd, "io": io})
+
+        try:
+            # Redirect stdout to capture the output of the executed code
+            with contextlib.redirect_stdout(output):
+                exec(code, exec_globals, exec_locals)
+
+            st.success("Code executed successfully!")
+
+            # Display the output captured
+            result = output.getvalue()
+            if result.strip():
+                st.write("Output from executed code:")
+                st.write(result)
+
+            # Check if 'df' in exec_locals was updated or created
+            if "df" in exec_locals and isinstance(exec_locals["df"], pd.DataFrame):
+                st.session_state.modified_df = exec_locals["df"]
+                st.write("Modified DataFrame:")
+                st.write(st.session_state.modified_df)
+                st.write(f"Modified DataFrame Shape: {st.session_state.modified_df.shape}")
+            else:
+                st.warning("No valid DataFrame found in the executed code.")
+
+        except Exception as e:
+            st.error(f"Error: {e}")
+
+    # Option to save the modified DataFrame with a new name
+    if "modified_df" in st.session_state:
+        new_name = st.text_input("Enter new DataFrame name", "")
+        if st.button("Save DataFrame") and new_name:
+            if new_name in st.session_state.dataframes:
+                st.warning(f"DataFrame name '{new_name}' already exists. Please choose a different name.")
+            else:
+                st.session_state.dataframes[new_name] = st.session_state.modified_df.copy()
+                st.success(f"DataFrame saved as '{new_name}' successfully!")
+                st.experimental_rerun()  # Force re-run to refresh UI components
+
+    # Display all available DataFrames
+    st.write("DataFrames available in session state:")
+    for name, df in st.session_state.dataframes.items():
+        st.write(f"{name}: {df.shape}")
+def delete_dataframe():
+    # Display available DataFrames
+    if "dataframes" not in st.session_state or not st.session_state.dataframes:
+        st.write("No DataFrames available to delete.")
+        return
+
+    # Dropdown to select which DataFrame to delete
+    df_names = list(st.session_state.dataframes.keys())
+    selected_df_name = st.selectbox("Select DataFrame to delete", df_names)
+
+    if st.button("Delete DataFrame"):
+        if selected_df_name in st.session_state.dataframes:
+            del st.session_state.dataframes[selected_df_name]
+            st.success(f"DataFrame '{selected_df_name}' deleted successfully!")
+            st.experimental_rerun()  # Refresh the app to reflect changes
+        else:
+            st.warning("Selected DataFrame not found.")
+
 def main():
     initialize_session_state()
     st.title("Machine Learning Tool")
 
     st.sidebar.title("Navigation")
-    options = ["Upload Data", "Data Information", "Dataframe Modification", "Graphs", "Hypothesis Testing", "Machine Learning"]
+    options = ["Upload Data", "Data Information", "Dataframe Modification", "Graphs", "Hypothesis Testing", "Machine Learning", "View Source Code", "Execute Code","Delete DataFrame"]
     choice = st.sidebar.radio("Choose an option", options)
 
     if choice == "Upload Data":
@@ -647,6 +760,13 @@ def main():
     elif choice == "Machine Learning":
         machine_learning()
 
+    elif choice == "View Source Code":
+        show_source_code()
+
+    elif choice == "Execute Code":
+        execute_code()
+    elif choice == "Delete DataFrame":
+        delete_dataframe()
+
 if __name__ == "__main__":
     main()
-
