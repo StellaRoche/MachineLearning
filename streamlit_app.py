@@ -33,6 +33,9 @@ def initialize_session_state():
    
     if "dataframes" not in st.session_state:
         st.session_state.dataframes = {}
+    if "code_snippets" not in st.session_state:
+        st.session_state.code_snippets = []
+    
 # Function to load data from different sources
 def load_data(source):
     if isinstance(source, str):
@@ -647,7 +650,7 @@ def show_source_code():
 
 def execute_code():
     # Input area for code to be executed
-    code = st.text_area("Type your Python code here", height=200)
+    code = st.text_area("Type your Python code here", height=400)
     
     # Dropdown to select which DataFrame to use
     selected_df_name = st.selectbox("Select DataFrame for Code Execution", st.session_state.dataframes.keys())
@@ -701,10 +704,24 @@ def execute_code():
                 st.success(f"DataFrame saved as '{new_name}' successfully!")
                 st.experimental_rerun()  # Force re-run to refresh UI components
 
+    # Option to save code
+    if st.text_input("Enter filename (excluding .py extension)", ""):
+        if st.button("Save Code") and code:
+            st.session_state.code_snippets.append(code)
+            st.success("Code successfully saved!")
+    
+    # Display saved code snippets
+    if st.session_state.code_snippets:
+        st.write("Saved Code Snippets:")
+        for idx, snippet in enumerate(st.session_state.code_snippets):
+            st.write(f"### Code Snippet {idx + 1}")
+            st.code(snippet, language='python')
+
     # Display all available DataFrames
     st.write("DataFrames available in session state:")
     for name, df in st.session_state.dataframes.items():
         st.write(f"{name}: {df.shape}")
+
 def delete_dataframe():
     # Display available DataFrames
     if "dataframes" not in st.session_state or not st.session_state.dataframes:
