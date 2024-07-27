@@ -300,6 +300,86 @@ def dataframe_modification():
             save_path = st.text_input("Enter the path to save the DataFrame", "manipulated_dataframe.csv")
             df.to_csv(save_path, index=False)
             st.success(f"DataFrame saved to {save_path}")
+def feature_engineering():
+    st.sidebar.header("Feature Engineering")
+    
+    # Select DataFrame
+    selected_df = st.selectbox("Select DataFrame", st.session_state.dataframes.keys())
+    df = st.session_state.dataframes[selected_df].copy()
+    
+    # Group by and aggregate options
+    if st.sidebar.checkbox("Group By and Aggregate"):
+        st.subheader("Group By and Aggregate")
+        group_by_column = st.selectbox("Select column to group by", df.columns)
+        aggregate_column = st.selectbox("Select column to aggregate", df.columns)
+        aggregation_func = st.selectbox("Select aggregation function", ["Mean", "Sum", "Count", "Max", "Min"])
+        
+        if group_by_column and aggregate_column and aggregation_func:
+            agg_func_map = {
+                "Mean": 'mean',
+                "Sum": 'sum',
+                "Count": 'count',
+                "Max": 'max',
+                "Min": 'min'
+            }
+            aggregation = agg_func_map[aggregation_func]
+            grouped_df = df.groupby(group_by_column).agg({aggregate_column: aggregation}).reset_index()
+            st.write("Grouped and Aggregated DataFrame")
+            st.write(grouped_df)
+    
+    # Mapping values
+    if st.sidebar.checkbox("Map Values"):
+        st.subheader("Map Values")
+        column_to_map = st.selectbox("Select column to map", df.columns)
+        if column_to_map:
+            unique_values = df[column_to_map].unique()
+            st.write(f"Unique values in '{column_to_map}':", unique_values)
+            value_mapping = {}
+            for value in unique_values:
+                new_value = st.text_input(f"Map '{value}' to", key=value)
+                if new_value:
+                    value_mapping[value] = new_value
+            if value_mapping:
+                df[column_to_map] = df[column_to_map].map(value_mapping)
+                st.write("DataFrame after mapping values")
+                st.write(df)
+    
+    # Extracting date features
+    if st.sidebar.checkbox("Extract Date Features"):
+        st.subheader("Extract Date Features")
+        date_column = st.selectbox("Select date column", df.columns)
+        if date_column and pd.api.types.is_datetime64_any_dtype(df[date_column]):
+            df['Year'] = df[date_column].dt.year
+            df['Month'] = df[date_column].dt.month
+            df['Day'] = df[date_column].dt.day
+            df['DayOfWeek'] = df[date_column].dt.dayofweek  # Monday=0, Sunday=6
+            df['Season'] = (df[date_column].dt.month % 12 // 3 + 1).map({1: 'Winter', 2: 'Spring', 3: 'Summer', 4: 'Fall'})
+            st.write("DataFrame with extracted date features")
+            st.write(df)
+        else:
+            st.error(f"The selected column '{date_column}' is not in datetime format.")
+    # Convert a column to datetime
+    if st.sidebar.checkbox("Convert Column to Datetime"):
+        st.subheader("Convert Column to Datetime")
+        column_to_convert = st.selectbox("Select column to convert to datetime", df.columns)
+        if column_to_convert:
+            try:
+                df[column_to_convert] = pd.to_datetime(df[column_to_convert])
+                st.write(f"Column '{column_to_convert}' successfully converted to datetime.")
+                st.write(df.head())
+            except Exception as e:
+                st.error(f"Error converting column to datetime: {e}")
+
+    # Save the modified DataFrame
+    new_df_name = st.text_input("Enter name for the new DataFrame", "Feature_Engineered_DataFrame")
+    if st.sidebar.button("Save manipulated DataFrame") and new_df_name:
+        st.session_state.dataframes[new_df_name] = df.copy()
+        st.success(f"DataFrame saved as {new_df_name}")
+
+    if st.sidebar.button("Save DataFrame to file"):
+        save_path = st.text_input("Enter the path to save the DataFrame", "feature_engineered_dataframe.csv")
+        df.to_csv(save_path, index=False)
+        st.success(f"DataFrame saved to {save_path}")
 
 # Function to display graphs
 def display_graphs():
@@ -649,12 +729,15 @@ def show_source_code():
 
 
 def execute_code():
-    # Input area for code to be executed
-    code = st.text_area("Type your Python code here", height=400)
     
     # Dropdown to select which DataFrame to use
     selected_df_name = st.selectbox("Select DataFrame for Code Execution", st.session_state.dataframes.keys())
     original_df = st.session_state.dataframes.get(selected_df_name)
+    
+    # Input area for code to be executed
+    code = st.text_area("Type your Python code here", height=400)
+    
+    
     
     if original_df is None:
         st.warning("No DataFrame selected or found in session state.")
@@ -745,7 +828,7 @@ def main():
     st.title("Machine Learning Tool")
 
     st.sidebar.title("Navigation")
-    options = ["Upload Data", "Data Information", "Dataframe Modification", "Graphs", "Hypothesis Testing", "Machine Learning", "View Source Code", "Execute Code","Delete DataFrame"]
+    options = ["Upload Data", "Data Information", "Dataframe Modification","Feature Engineering", "Graphs", "Hypothesis Testing", "Machine Learning", "View Source Code", "Execute Code","Delete DataFrame"]
     choice = st.sidebar.radio("Choose an option", options)
 
     if choice == "Upload Data":
@@ -767,6 +850,9 @@ def main():
             dataframe_modification()
         else:
             st.warning("Please upload a dataset first.")
+
+    elif choice == "Feature Engineering":
+        feature_engineering()
 
     elif choice == "Graphs":
         display_graphs()
