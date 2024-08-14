@@ -732,13 +732,7 @@ def machine_learning(df):
                     hyperparameters["Decision Tree"] = {"max_depth": max_depth, "min_samples_split": min_samples_split}
                     
             
-                selected_models = st.multiselect("Select unsupervised learning models", list(unsupervised_models.keys()), default=list(unsupervised_models.keys()))
-                
-                if "Autoencoder" in selected_models and tune_nn:
-                    epochs = st.slider("Autoencoder - Epochs", 1, 100, 50)
-                    batch_size = st.slider("Autoencoder - Batch Size", 16, 256, 32)
-                    hyperparameters["Autoencoder"] = {"epochs": epochs, "batch_size": batch_size}
-                    
+                                    
             if st.button("Train models"):
                 try:
                     if problem_type in ["Regression", "Classification"]:
