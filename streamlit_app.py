@@ -875,7 +875,7 @@ def execute_code(df):
     # Display all available DataFrames
     st.write("DataFrames available in session state:")
     for name, df in st.session_state.dataframes.items():
-        st.write(f"{name}: {df.shape}")
+        
 
 # Function to show code of different functions
 def show_source_code():
@@ -898,7 +898,7 @@ def show_source_code():
             "show_missing_values",
             "column_datatypes",
             "find_unique_values",
-            "show_data_imbalance",
+            
             "display_graphs"
             "hypothesis_testing",
             "data_cleaning_and_preprocessing",
@@ -941,7 +941,7 @@ def delete_dataframe():
         if selected_df_name in st.session_state.dataframes:
             del st.session_state.dataframes[selected_df_name]
             st.success(f"DataFrame '{selected_df_name}' deleted successfully!")
-            st.experimental_rerun()  # Refresh the app to reflect changes
+            
         else:
             st.warning("Selected DataFrame not found.")
 
