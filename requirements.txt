@@ -1,25 +1,24 @@
 # Data Manipulation and Analysis
-pandas==2.0.3
-numpy==1.24.4
-
+pandas
+numpy
 # Visualization
-matplotlib==3.8.1
-seaborn==0.12.2
+matplotlib
+seaborn
 
 # Streamlit
-streamlit==1.36.0  # Updated to the version you have
+streamlit # Updated to the version you have
 
 # Machine Learning Models
-scikit-learn==1.3.0
-lightgbm==4.0.0
+scikit-learn
+lightgbm
 
 # Deep Learning Models
-keras==2.13.1  # Aligned with tensorflow's requirements
-tensorflow==2.13.0
+keras # Aligned with tensorflow's requirements
+tensorflow
 
 # Statistical Tests
-scipy==1.11.1
+scipy
 
 # Serialization
-pickle5==0.0.11
-joblib==1.3.1
+pickle5
+joblib
