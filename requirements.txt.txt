@@ -1,0 +1,40 @@
+# Data Manipulation and Analysis
+pandas==2.0.1
+numpy==1.24.4
+
+# Visualization
+matplotlib==3.7.1
+seaborn==0.12.2
+
+# Streamlit for Web App
+streamlit==1.21.0
+
+# Machine Learning Models
+scikit-learn==1.3.0
+lightgbm==4.0.0
+
+# Metrics
+scikit-learn==1.3.0
+
+# Preprocessing and Data Manipulation
+scikit-learn==1.3.0
+
+# Statistical Tests
+scipy==1.11.1
+
+# Clustering Models
+scikit-learn==1.3.0
+
+# Dimensionality Reduction
+scikit-learn==1.3.0
+
+# Deep Learning Models
+tensorflow==2.14.0
+keras==2.14.0
+
+# Utility Libraries
+# These are standard Python libraries and do not need to be specified in requirements.txt
+# inspect, io, contextlib, time
+
+# Serialization
+joblib==1.3.2
