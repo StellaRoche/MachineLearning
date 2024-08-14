@@ -127,7 +127,7 @@ def initialize_session_state():
         st.session_state['y_test'] = None
 def file_upload():
     if not st.session_state.file_uploaded:
-        uploaded_file = st.sidebar.file_uploader("Upload a file", type=["csv", "xlsx"])
+        uploaded_file = st.sidebar.file_uploader("Upload a file", type=["csv"])
 
         if uploaded_file:
             if uploaded_file.name.endswith('.csv'):
