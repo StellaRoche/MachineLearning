@@ -857,7 +857,7 @@ def execute_code(df):
             else:
                 st.session_state.dataframes[new_name] = st.session_state.modified_df.copy()
                 st.success(f"DataFrame saved as '{new_name}' successfully!")
-                st.experimental_rerun()  # Force re-run to refresh UI components
+                #st.experimental_rerun()  # Force re-run to refresh UI components
 
     # Option to save code
     if st.text_input("Enter filename (excluding .py extension)", ""):
