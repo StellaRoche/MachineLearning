@@ -1,22 +1,38 @@
 # Data Manipulation and Analysis
-pandas
-numpy
-# Visualization
-matplotlib
-seaborn
+pandas>=1.3.0
+numpy>=1.21.0
 
-# Streamlit
-streamlit # Updated to the version you have
+# Visualization
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# Streamlit for Web App
+streamlit>=1.26.0
 
 # Machine Learning Models
-scikit-learn
-lightgbm
+scikit-learn>=1.0.0
+lightgbm>=3.3.0
 
-# Deep Learning Models
-keras # Aligned with tensorflow's requirements
-tensorflow
+# Metrics
+# (Included in scikit-learn)
+
+# Preprocessing and Data Manipulation
+# (Included in scikit-learn)
 
 # Statistical Tests
-scipy
+scipy>=1.7.0
 
+# Clustering Models
+# (Included in scikit-learn)
 
+# Dimensionality Reduction
+# (Included in scikit-learn)
+
+# Deep Learning Models
+tensorflow>=2.10.0
+
+# Utility Libraries
+# (Included in Python Standard Library)
+
+# Serialization
+# (Included in Python Standard Library)
