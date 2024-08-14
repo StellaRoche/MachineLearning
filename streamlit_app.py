@@ -792,7 +792,7 @@ def machine_learning(df):
 def bonus(df):
     sub_menu = st.selectbox("Select an Option", [
         
-        "Execute Code",
+       
         "Show Code",
         "Delete Dataframe"
     ])
