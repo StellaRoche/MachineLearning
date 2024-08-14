@@ -643,10 +643,7 @@ def feature_engineering(df):
 
 
 def machine_learning(df):
-    st.sidebar.header("Machine Learning")
-    
-    
-    
+      
     if df is not None and st.checkbox("Perform machine learning"):
         st.subheader("Machine Learning")
         
