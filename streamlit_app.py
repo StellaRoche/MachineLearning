@@ -185,7 +185,7 @@ def label_encode_columns(df, columns_to_encode, ordered_unique_values):
 def data_exploration(df):
    
     sub_menu = st.selectbox("Select an Option", [
-        "Descriptive Statistics","Show Missing(Null) Values","Show Column Datatypes","Show Unique Values","Show Data Imbalances"
+        "Descriptive Statistics","Show Missing(Null) Values","Show Column Datatypes","Show Unique Values",
         "Visualization Tools"
     ])
     
