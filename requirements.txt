@@ -19,6 +19,4 @@ tensorflow
 # Statistical Tests
 scipy
 
-# Serialization
-pickle5
-joblib
+
