@@ -56,13 +56,12 @@ from sklearn.cluster import (
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
+
 # Deep Learning Models
-from tensorflow.keras.models import Sequential
+from keras.models import Sequential
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.utils import to_categorical
-
-
+from keras.utils import to_categorical
 # Utility Libraries
 import inspect
 import io
