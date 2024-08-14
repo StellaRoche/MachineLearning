@@ -647,7 +647,7 @@ def machine_learning(df):
     if df is not None and st.checkbox("Perform machine learning"):
         st.subheader("Machine Learning")
         
-        problem_type = st.selectbox("Choose problem type", ["Regression", "Classification", "Clustering", "Unsupervised Learning"])
+        problem_type = st.selectbox("Choose problem type", ["Regression", "Classification"])
         
         target_column = st.selectbox("Select target column", df.columns)
 
