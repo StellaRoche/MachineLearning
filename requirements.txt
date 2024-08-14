@@ -1,10 +1,36 @@
-streamlit==1.36.0
-pandas==2.0.2
+
+# Data Manipulation and Analysis
+pandas==2.0.3
 numpy==1.24.4
-matplotlib==3.8.0
+
+# Visualization
+matplotlib==3.8.1
 seaborn==0.12.2
-scipy==1.11.2
+
+# Streamlit
+streamlit==1.21.0
+
+# Machine Learning Models
 scikit-learn==1.3.0
-lightgbm==4.1.0
-tensorflow==2.14.0
-keras==2.14.0
+lightgbm==4.0.0
+
+# Deep Learning Models
+keras==2.16.0
+tensorflow==2.13.0
+
+# Statistical Tests
+scipy==1.11.1
+
+# Clustering Models
+# (included in scikit-learn)
+
+# Dimensionality Reduction
+# (included in scikit-learn)
+
+# Utility Libraries
+# (standard libraries)
+
+# Serialization
+pickle5==0.0.11
+joblib==1.3.1
+
