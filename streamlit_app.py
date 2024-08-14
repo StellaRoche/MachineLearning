@@ -58,7 +58,7 @@ from sklearn.manifold import TSNE
 
 
 # Deep Learning Models
-from keras.models import Sequential
+#from keras.models import Sequential
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 from keras.utils import to_categorical
@@ -734,17 +734,7 @@ def machine_learning(df):
                     min_samples_split = st.slider("Decision Tree - Min Samples Split", 2, 20, 2)
                     hyperparameters["Decision Tree"] = {"max_depth": max_depth, "min_samples_split": min_samples_split}
                     
-            elif problem_type == "Unsupervised Learning":
-                unsupervised_models = {
-                    "PCA": PCA(),
-                    "t-SNE": TSNE(),
-                    "Autoencoder": Sequential([
-                        Dense(64, activation='relu', input_shape=(X.shape[1],)),
-                        Dense(32, activation='relu'),
-                        Dense(64, activation='relu'),
-                        Dense(X.shape[1], activation='sigmoid')
-                    ])
-                }
+            
                 selected_models = st.multiselect("Select unsupervised learning models", list(unsupervised_models.keys()), default=list(unsupervised_models.keys()))
                 
                 if "Autoencoder" in selected_models and tune_nn:
@@ -794,15 +784,7 @@ def machine_learning(df):
                                 if name == "PCA":
                                     st.write("Explained variance ratio:")
                                     st.write(model.explained_variance_ratio_)
-                            elif name == "Autoencoder":
-                                model.compile(optimizer='adam', loss='mean_squared_error')
-                                model.fit(X, X, epochs=hyperparameters["Autoencoder"]["epochs"], 
-                                        batch_size=hyperparameters["Autoencoder"]["batch_size"], 
-                                        shuffle=True, 
-                                        validation_split=0.2)
-                                encoded_data = model.predict(X)
-                                st.write("Autoencoder encoded data:")
-                                st.write(encoded_data)
+                            
                 
                 except Exception as e:
                     st.error(f"An error occurred during model training: {e}")
