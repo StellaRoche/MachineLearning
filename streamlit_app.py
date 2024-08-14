@@ -875,6 +875,7 @@ def execute_code(df):
     # Display all available DataFrames
     st.write("DataFrames available in session state:")
     for name, df in st.session_state.dataframes.items():
+        st.write(f"{name}: {df}")
         
 
 # Function to show code of different functions
