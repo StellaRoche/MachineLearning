@@ -94,6 +94,7 @@ def main():
     
     df = st.session_state.dataframes[selected_df]
     
+    
        
     with tabs[0]:
         data_exploration(df)
@@ -105,7 +106,7 @@ def main():
         machine_learning(df)
     with tabs[4]:
         bonus(df)
-    st.write(df)
+    
 
 def initialize_session_state():
     
@@ -185,9 +186,12 @@ def label_encode_columns(df, columns_to_encode, ordered_unique_values):
 def data_exploration(df):
    
     sub_menu = st.selectbox("Select an Option", [
-        "Descriptive Statistics","Show Missing(Null) Values","Show Column Datatypes","Show Unique Values","Show Data Imbalances","Visualization Tools"])
-    
-    if sub_menu == "Descriptive Statistics":
+        "Working Data","Descriptive Statistics","Show Missing(Null) Values","Show Column Datatypes","Show Unique Values","Show Data Imbalances",
+        "Visualization Tools"
+    ])
+    if sub_menu == "Working Data":
+        display_data(df)
+    elif sub_menu == "Descriptive Statistics":
         display_descriptive_statistics(df)
     elif sub_menu == "Show Missing(Null) Values":
         show_missing_values(df)
@@ -199,6 +203,12 @@ def data_exploration(df):
         show_data_imbalance(df)
     elif sub_menu == "Visualization Tools":
         display_graphs(df)
+
+def display_data(df):
+    st.write("First five rows of the Data")
+    st.write(df.head())
+    st.write("Last five rows of the Data")
+    st.write(df.tail())
 
 def display_descriptive_statistics(df):
     if st.checkbox("Show Descriptive statistics"):
