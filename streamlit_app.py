@@ -73,7 +73,7 @@ import pickle
 import joblib
 
 import os
-
+import plotly.express as px
 def main():
     initialize_session_state()
     apply_custom_css()
@@ -185,7 +185,7 @@ def label_encode_columns(df, columns_to_encode, ordered_unique_values):
 def data_exploration(df):
    
     sub_menu = st.selectbox("Select an Option", [
-        "Descriptive Statistics","Show Missing(Null) Values","Show Column Datatypes","Show Unique Values",
+        "Descriptive Statistics","Show Missing(Null) Values","Show Column Datatypes","Show Unique Values","Show Data Imbalances",
         "Visualization Tools"
     ])
     
@@ -232,7 +232,102 @@ def find_unique_values(df):
     return df 
 
 def show_data_imbalance(df):
-    st.write("Coming soon")
+    """
+    Checks and visualizes class imbalance for specified columns in a dataset.
+    Allows user to select columns, set an imbalance percentage threshold, specify the number of bins for histogram,
+    and choose whether to view plots side by side.
+    
+    Parameters:
+    df (pd.DataFrame): The dataset containing the columns to analyze.
+
+    Returns:
+    None
+    """
+    # Select columns from the DataFrame
+    columns = df.columns.tolist()
+    selected_columns = st.multiselect('Select Columns to Analyze', columns, default=[columns[0]])
+
+    # Set threshold value
+    percentage_threshold = st.slider('Select Threshold Percentage', min_value=0, max_value=100, value=10)
+    
+    # Set number of bins for histogram
+    num_bins = st.slider('Select Number of Bins for Histogram', min_value=5, max_value=50, value=10)
+
+    # Option to view plots side by side
+    side_by_side = st.checkbox('View Plots Side by Side')
+
+    # Validate selected columns
+    if not selected_columns:
+        st.error("Please select at least one column.")
+        return
+
+    # Prepare to display plots
+    if side_by_side:
+        # Display plots side by side
+        cols = st.columns(len(selected_columns))
+        for idx, target_column in enumerate(selected_columns):
+            with cols[idx]:
+                plot_column(df, target_column, percentage_threshold, num_bins)
+    else:
+        # Display plots one by one
+        for target_column in selected_columns:
+            plot_column(df, target_column, percentage_threshold, num_bins)
+
+def plot_column(df, target_column, percentage_threshold, num_bins):
+    """
+    Helper function to plot class imbalance for a single column.
+    
+    Parameters:
+    df (pd.DataFrame): The dataset containing the column to analyze.
+    target_column (str): The column to analyze.
+    percentage_threshold (int): The percentage threshold for class imbalance.
+    num_bins (int): Number of bins for histogram.
+    
+    Returns:
+    None
+    """
+    if target_column not in df.columns:
+        st.error(f"Column '{target_column}' not found in dataset.")
+        return
+
+    # Calculate class distribution
+    class_counts = df[target_column].value_counts()
+    total_count = len(df)
+    class_percentages = (class_counts / total_count) * 100
+
+    # Filter by percentage threshold
+    imbalance_filter = class_percentages[class_percentages < percentage_threshold]
+    if imbalance_filter.empty:
+        st.write(f"No classes below {percentage_threshold}% for column '{target_column}'.")
+        return
+
+    # Plot based on datatype
+    st.write(f"### Visualization for '{target_column}'")
+
+    if pd.api.types.is_numeric_dtype(df[target_column]):
+        # Plot histogram for numeric columns
+        fig = px.histogram(df, x=target_column, nbins=num_bins,
+                           labels={'x': target_column, 'y': 'Frequency'},
+                           title=f'Histogram of {target_column}')
+        fig.update_layout(bargap=0.1)  # Adjust gap between bars
+    else:
+        # Plot bar chart for categorical columns
+        fig = px.bar(class_counts, x=class_counts.index, y=class_counts.values,
+                     labels={'x': target_column, 'y': 'Number of Samples'},
+                     title=f'Class Distribution in {target_column}')
+        # Add percentage labels to the bars
+        fig.update_traces(text=class_percentages.map(lambda x: f"{x:.2f}%"), textposition='outside')
+
+    st.plotly_chart(fig)
+
+    # Display class distribution table with percentages
+    st.write(f"#### Class Counts and Percentages for '{target_column}':")
+    class_distribution = pd.DataFrame({
+        'Class': class_counts.index,
+        'Count': class_counts.values,
+        'Percentage': class_percentages.map(lambda x: f"{x:.2f}%")
+    })
+    st.write(class_distribution)
 
 def display_graphs(df):
         
