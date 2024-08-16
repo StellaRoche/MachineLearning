@@ -105,7 +105,7 @@ def main():
         machine_learning(df)
     with tabs[4]:
         bonus(df)
-
+    st.write(df)
 
 def initialize_session_state():
     
