@@ -1,39 +1,11 @@
-# Data Manipulation and Analysis
-pandas>=1.3.0
-numpy>=1.21.0
-
-# Visualization
-matplotlib>=3.4.0
-seaborn>=0.11.0
-plotly>=5.9.0
-
-# Streamlit for Web App
-streamlit>=1.26.0
-
-# Machine Learning Models
-scikit-learn>=1.0.0
-lightgbm>=3.3.0
-
-# Metrics
-# (Included in scikit-learn)
-
-# Preprocessing and Data Manipulation
-# (Included in scikit-learn)
-
-# Statistical Tests
-scipy>=1.7.0
-
-# Clustering Models
-# (Included in scikit-learn)
-
-# Dimensionality Reduction
-# (Included in scikit-learn)
-
-# Deep Learning Models
-tensorflow>=2.10.0
-
-# Utility Libraries
-# (Included in Python Standard Library)
-
-# Serialization
-# (Included in Python Standard Library)
+pandas==2.0.3
+numpy==1.25.2
+yfinance==0.2.31
+matplotlib==3.7.2
+seaborn==0.12.2
+plotly==5.17.0
+streamlit==1.25.0
+scikit-learn==1.3.0
+lightgbm==4.1.0
+scipy==1.11.2
+joblib==1.4.0
