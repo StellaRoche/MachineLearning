@@ -1,39 +1,49 @@
+# -------------------------------------------
 # Data Manipulation and Analysis
+# -------------------------------------------
 import pandas as pd
 import numpy as np
+import yfinance as yf
 
-# Visualization
+# -------------------------------------------
+# Visualization Libraries
+# -------------------------------------------
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
 
-# Streamlit for Web App
+# -------------------------------------------
+# Web App (Streamlit)
+# -------------------------------------------
 import streamlit as st
 
+# -------------------------------------------
 # Machine Learning Models
+# -------------------------------------------
 from sklearn.linear_model import (
     LogisticRegression, LinearRegression, Ridge, Lasso, ElasticNet
 )
-from sklearn.tree import (
-    DecisionTreeClassifier, DecisionTreeRegressor
-)
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import (
     RandomForestClassifier, RandomForestRegressor, GradientBoostingClassifier, GradientBoostingRegressor
 )
-from sklearn.svm import (
-    SVC, SVR
-)
+from sklearn.svm import SVC, SVR
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 import lightgbm as lgb
 
-# Metrics
+# -------------------------------------------
+# Metrics and Model Evaluation
+# -------------------------------------------
 from sklearn.metrics import (
     accuracy_score, f1_score, roc_auc_score, roc_curve, precision_score, recall_score,
     confusion_matrix, classification_report, mean_squared_error, r2_score
 )
 
+# -------------------------------------------
 # Preprocessing and Data Manipulation
+# -------------------------------------------
 from sklearn.preprocessing import (
     LabelEncoder, OneHotEncoder, StandardScaler, MinMaxScaler
 )
@@ -41,82 +51,56 @@ from sklearn.model_selection import (
     train_test_split, cross_val_score
 )
 
+# -------------------------------------------
 # Statistical Tests
+# -------------------------------------------
 from scipy import stats
 from scipy.stats import (
     ttest_1samp, ttest_ind, f_oneway
 )
 
+# -------------------------------------------
 # Clustering Models
-from sklearn.cluster import (
-    KMeans, AgglomerativeClustering, DBSCAN
-)
+# -------------------------------------------
+from sklearn.cluster import KMeans, AgglomerativeClustering, DBSCAN
 
+# -------------------------------------------
 # Dimensionality Reduction
+# -------------------------------------------
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
-
-# Deep Learning Models
-#from keras.models import Sequential
-#from tensorflow.keras.models import Model
-#from tensorflow.keras.layers import Input, Dense
-#from keras.utils import to_categorical
-# Utility Libraries
+# -------------------------------------------
+# Utilities
+# -------------------------------------------
+from datetime import datetime
 import inspect
 import io
 import contextlib
 import time
+import os
 
+# -------------------------------------------
 # Serialization
+# -------------------------------------------
 import pickle
 import joblib
 
-import os
-import plotly.express as px
-def main():
-    initialize_session_state()
-    apply_custom_css()
-    st.sidebar.title("EasyML")
-    st.sidebar.markdown("<p style='font-size: 12px; color: grey;'><i>Success is just a step away!</i></p>", unsafe_allow_html=True)
-    #Upload and DataFrame Selection
-    file_upload()
-    
-    # Main Tabs
-     # Main Tabs
-    tabs = st.tabs(["Exploration", "Hypothesis","Preprocessing", "Machine Learning","Bonus"])
-    
-    selected_df = st.sidebar.selectbox("Select DataFrame", list(st.session_state.dataframes.keys()))
-    
-    if not selected_df:
-        st.warning("Please upload a file or select an existing DataFrame or refresh.")
-        return
-    
-    df = st.session_state.dataframes[selected_df]
-    
-    
-       
-    with tabs[0]:
-        data_exploration(df)
-    with tabs[1]:
-        hypothesis_testing(df)
-    with tabs[2]:
-        data_cleaning_and_preprocessing(df)
-    with tabs[3]:
-        machine_learning(df)
-    with tabs[4]:
-        bonus(df)
-    
+# -------------------------------------------
+# Deep Learning Models (commented out)
+# -------------------------------------------
+# from keras.models import Sequential
+# from tensorflow.keras.models import Model
+# from tensorflow.keras.layers import Input, Dense
+# from keras.utils import to_categorical
 
+
+# Initialize session state
 def initialize_session_state():
-    
     if 'dataframes' not in st.session_state:
         st.session_state['dataframes'] = {}
-
     if "code_snippets" not in st.session_state:
         st.session_state.code_snippets = []
-
-    # Initialize upload state
     if 'file_uploaded' not in st.session_state:
         st.session_state.file_uploaded = False
     if 'model' not in st.session_state:
@@ -126,6 +110,18 @@ def initialize_session_state():
         st.session_state['X_test'] = None
         st.session_state['y_train'] = None
         st.session_state['y_test'] = None
+    if 'yfinance_data' not in st.session_state:
+        st.session_state['yfinance_data'] = None
+    if 'processed_yfinance_data' not in st.session_state:
+        st.session_state['processed_yfinance_data'] = None
+    if 'yfinance_model' not in st.session_state:
+        st.session_state['yfinance_model'] = None
+    if 'yfinance_ticker' not in st.session_state:
+        st.session_state['yfinance_ticker'] = None
+   
+
+
+# Function to handle file upload
 def file_upload():
     if not st.session_state.file_uploaded:
         uploaded_file = st.sidebar.file_uploader("Upload a file", type=["csv"])
@@ -133,15 +129,163 @@ def file_upload():
         if uploaded_file:
             if uploaded_file.name.endswith('.csv'):
                 df = pd.read_csv(uploaded_file)
-            
-            st.session_state.dataframes[uploaded_file.name] = df
-
-            # Set file_uploaded to True
-            st.session_state.file_uploaded = True
-
-            
+                st.session_state.dataframes[uploaded_file.name] = df
+                st.session_state.file_uploaded = True
+            st.sidebar.checkbox("File uploaded", value=True, disabled=True)
     else:
         st.sidebar.checkbox("File uploaded", value=True, disabled=True)
+
+# Function to handle Yahoo Finance data processing
+def save_dataframe(df):
+    new_df_name = st.sidebar.text_input("Name Modified dataframe")
+    st.write(new_df_name)
+    
+    if st.sidebar.checkbox("Save") and new_df_name:
+        st.session_state.dataframes[new_df_name] = df.copy()
+        st.success(f"DataFrame saved as {new_df_name}")
+def predict_future_price(data, model, prediction_date):
+    """
+    Predicts the closing price for a given future date using the provided model.
+
+    :param data: The DataFrame containing the historical data.
+    :param model: The trained model to use for prediction.
+    :param prediction_date: The future date for which the closing price is to be predicted.
+    :return: Predicted closing price for the given date.
+    """
+    # Use historical mean values for prediction
+    mean_values = {
+        'Open': data['Open'].mean(),
+        'High': data['High'].mean(),
+        'Low': data['Low'].mean(),
+        'Close': data['Close'].mean(),
+        'Volume': data['Volume'].mean()
+    }
+
+    # Convert mean values into DataFrame for prediction
+    future_data = pd.DataFrame(mean_values, index=[0])
+
+    # Predict using the model
+    predicted_price = model.predict(future_data)[0]
+    return predicted_price
+
+def yfinance_processing():
+    st.subheader("Yahoo Finance Data Processing")
+
+    ticker_options = {
+        "Apple Inc.": "AAPL",
+        "Microsoft Corporation": "MSFT",
+        "Amazon.com, Inc.": "AMZN",
+        "Alphabet Inc. (Google)": "GOOGL",
+        "Tesla, Inc.": "TSLA",
+        "Facebook, Inc. (Meta)": "META",
+        "NVIDIA Corporation": "NVDA",
+        "Netflix, Inc.": "NFLX",
+        "The Coca-Cola Company": "KO",
+        "PepsiCo, Inc.": "PEP"
+    }
+
+    selected_company = st.selectbox("Select a company", list(ticker_options.keys()), key="yfinance_company_select")
+    manual_ticker = st.text_input("Or type a ticker symbol (e.g., GOOGL for Google)", key="yfinance_manual_ticker")
+
+    ticker = manual_ticker.upper() if manual_ticker else ticker_options[selected_company]
+    st.write(f"Using ticker: {ticker}")
+
+    start_date = st.date_input("Start date", datetime(2020, 1, 1), key="yfinance_start_date")
+    end_date = st.date_input("End date", datetime.today().date(), key="yfinance_end_date")
+
+    if st.button("Download Data", key="yfinance_download_button"):
+        st.write(f"Fetching data for {ticker} from {start_date} to {end_date}")
+        data = yf.download(ticker, start=start_date, end=end_date)
+
+        if 'Close' in data.columns:
+            st.session_state['yfinance_data'] = data
+            st.session_state['yfinance_ticker'] = ticker
+
+            data['Target'] = data['Close'].shift(-1)
+            data = data.dropna()
+            st.session_state['processed_yfinance_data'] = data
+
+            X = data[['Open', 'High', 'Low', 'Close', 'Volume']]
+            y = data['Target']
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+            st.session_state['yfinance_model'] = model
+
+            y_pred = model.predict(X_test)
+            mse = mean_squared_error(y_test, y_pred)
+            r2 = r2_score(y_test, y_pred)
+
+            st.write("### Model Performance on Test Set")
+            st.write(f"Mean Squared Error (MSE): {mse:.2f}")
+            st.write(f"R-squared (R²): {r2:.2f}")
+
+            results = pd.DataFrame({"Actual": y_test, "Predicted": y_pred})
+            st.write("### Predictions vs Actual Values on Test Set")
+            st.write(results.head())
+
+            # Create CSV for original data
+            csv_original = data.to_csv().encode('utf-8')
+            st.download_button(
+                label="Download Original Data as CSV",
+                data=csv_original,
+                file_name=f"{ticker}_original_data.csv",
+                mime='text/csv',
+                key="yfinance_original_csv"
+            )
+        else:
+            st.write("The data does not contain a 'Close' column for prediction.")
+
+    # Predict closing price for a specific date
+    prediction_date = st.date_input("Select a date for prediction", datetime.today().date(), key="yfinance_prediction_date")
+
+    if st.button("Predict Closing Price", key="yfinance_predict_button"):
+        st.write(f"Predicting closing price for {ticker} on {prediction_date}")
+
+        # Ensure that prediction date is in the future
+        if prediction_date > end_date:
+            if 'yfinance_model' in st.session_state and 'yfinance_data' in st.session_state:
+                model = st.session_state['yfinance_model']
+                data = st.session_state['yfinance_data']
+                predicted_price = predict_future_price(data, model, prediction_date)
+                st.write(f"Predicted closing price for {ticker} on {prediction_date.strftime('%Y-%m-%d')}: ${predicted_price:.2f}")
+            else:
+                st.warning("Model or data is not available for prediction. Please download the data first.")
+        else:
+            st.write("Please select a date after the end date for prediction.")
+
+    # Main function
+def main():
+    initialize_session_state()
+    st.title("EasyML")
+    st.sidebar.title("EasyML")
+    st.sidebar.markdown("<p style='font-size: 12px; color: grey;'><i>Success is just a step away!</i></p>", unsafe_allow_html=True)
+    
+    # File upload
+    file_upload()
+    
+    # Main Tabs
+    tabs = st.tabs(["Exploration", "Hypothesis", "Preprocessing", "Machine Learning", "Bonus", "Yahoo Finance"])
+    
+    selected_df = st.sidebar.selectbox("Select DataFrame", list(st.session_state.dataframes.keys()) + ["None"], key="dataframe_select")
+    
+    if selected_df != "None":
+        df = st.session_state.dataframes[selected_df]
+    
+        with tabs[0]:
+            data_exploration(df)
+        with tabs[1]:
+            hypothesis_testing(df)
+        with tabs[2]:
+            data_cleaning_and_preprocessing(df)
+        with tabs[3]:
+            machine_learning(df)
+        with tabs[4]:
+            bonus(df)
+    
+    with tabs[5]:
+        yfinance_processing()
+
 def apply_custom_css():
     st.markdown("""
     <style>
@@ -165,13 +309,8 @@ def apply_custom_css():
     }
     </style>
     """, unsafe_allow_html=True)
-def save_dataframe(df):
-    new_df_name = st.sidebar.text_input("Name Modified dataframe")
-    st.write(new_df_name)
-    
-    if st.sidebar.checkbox("Save") and new_df_name:
-        st.session_state.dataframes[new_df_name] = df.copy()
-        st.success(f"DataFrame saved as {new_df_name}")
+
+
 @st.cache_data  # Cache based on data inputs
 def label_encode_columns(df, columns_to_encode, ordered_unique_values):
     encoded_info = {}
