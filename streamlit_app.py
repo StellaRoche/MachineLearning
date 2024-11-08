@@ -1,6 +1,7 @@
 # Data Manipulation and Analysis
 import pandas as pd
 import numpy as np
+import category_encoders as ce
 
 # Visualization
 import matplotlib.pyplot as plt
@@ -126,6 +127,8 @@ def initialize_session_state():
         st.session_state['X_test'] = None
         st.session_state['y_train'] = None
         st.session_state['y_test'] = None
+
+
 def file_upload():
     if not st.session_state.file_uploaded:
         uploaded_file = st.sidebar.file_uploader("Upload a file", type=["csv"])
@@ -508,14 +511,14 @@ def data_cleaning_and_preprocessing(df):
         feature_engineering(df)
 # Subcategory Functions
 def handle_missing_values(df):
-    
+
     # Section for filling missing values with the mean
     if st.checkbox("Fill with Mean"):
         columns_to_fill_mean = st.multiselect("Select columns to fill with Mean", df.columns)
         if columns_to_fill_mean:
             for column in columns_to_fill_mean:
                 df[column] = df[column].fillna(df[column].mean())
-            st.write("DataFrame after filling missing values with Mean" )
+            st.write("DataFrame after filling missing values with Mean")
             st.write(df)
 
     # Section for filling missing values with the median
@@ -536,11 +539,101 @@ def handle_missing_values(df):
                 df[column] = df[column].fillna(specified_value)
             st.write("DataFrame after filling missing values with Specified Value")
             st.write(df)
+
+    # Section for dropping rows with missing values
+    if st.checkbox("Drop Rows with Missing Values"):
+        df = df.dropna()
+        st.write("DataFrame after dropping rows with missing values")
+        st.write(df)
+
+    # Section for dropping columns with missing values
+    if st.checkbox("Drop Columns with Missing Values"):
+        df = df.dropna(axis=1)
+        st.write("DataFrame after dropping columns with missing values")
+        st.write(df)
+
+    # Section for filling missing values with the mode
+    if st.checkbox("Fill with Mode"):
+        columns_to_fill_mode = st.multiselect("Select columns to fill with Mode", df.columns)
+        if columns_to_fill_mode:
+            for column in columns_to_fill_mode:
+                df[column] = df[column].fillna(df[column].mode()[0])
+            st.write("DataFrame after filling missing values with Mode")
+            st.write(df)
+
+    # Section for forward fill
+    if st.checkbox("Forward Fill"):
+        columns_to_forward_fill = st.multiselect("Select columns to forward fill", df.columns)
+        if columns_to_forward_fill:
+            for column in columns_to_forward_fill:
+                df[column] = df[column].fillna(method='ffill')
+            st.write("DataFrame after forward filling")
+            st.write(df)
+
+    # Section for backward fill
+    if st.checkbox("Backward Fill"):
+        columns_to_backward_fill = st.multiselect("Select columns to backward fill", df.columns)
+        if columns_to_backward_fill:
+            for column in columns_to_backward_fill:
+                df[column] = df[column].fillna(method='bfill')
+            st.write("DataFrame after backward filling")
+            st.write(df)
+
+    # Section for adding an indicator for missing values
+    if st.checkbox("Add Missing Value Indicator"):
+        columns_to_indicator = st.multiselect("Select columns to add missing value indicator", df.columns)
+        if columns_to_indicator:
+            for column in columns_to_indicator:
+                df[f'{column}_missing'] = df[column].isna().astype(int)
+            st.write("DataFrame after adding missing value indicators")
+            st.write(df)
+
+    # Section for K-Nearest Neighbors Imputation
+    if st.checkbox("K-Nearest Neighbors (KNN) Imputation"):
+        columns_to_knn_impute = st.multiselect("Select columns to impute with KNN", df.columns)
+        if columns_to_knn_impute:
+            from sklearn.impute import KNNImputer
+            n_neighbors = st.slider("Select number of neighbors for KNN", 1, 10, 5)
+            imputer = KNNImputer(n_neighbors=n_neighbors)
+            df[columns_to_knn_impute] = imputer.fit_transform(df[columns_to_knn_impute])
+            st.write("DataFrame after KNN Imputation")
+            st.write(df)
+
+    # Section for Iterative Imputation
+    if st.checkbox("Iterative Imputation"):
+        columns_to_iterative_impute = st.multiselect("Select columns to impute with Iterative Imputation", df.columns)
+        if columns_to_iterative_impute:
+            from sklearn.experimental import enable_iterative_imputer
+            from sklearn.impute import IterativeImputer
+            imputer = IterativeImputer()
+            df[columns_to_iterative_impute] = imputer.fit_transform(df[columns_to_iterative_impute])
+            st.write("DataFrame after Iterative Imputation")
+            st.write(df)
+
+    # Section for Random Sample Imputation
+    if st.checkbox("Random Sample Imputation"):
+        columns_to_random_sample = st.multiselect("Select columns to impute with random sampling", df.columns)
+        if columns_to_random_sample:
+            for column in columns_to_random_sample:
+                df[column] = df[column].apply(lambda x: x if not pd.isna(x) else df[column].dropna().sample(1).iloc[0])
+            st.write("DataFrame after Random Sample Imputation")
+            st.write(df)
+
+    # Section for Custom Function Imputation
+    if st.checkbox("Custom Function Imputation"):
+        columns_to_custom_impute = st.multiselect("Select columns to impute with a custom function", df.columns)
+        custom_value = st.number_input("Enter value for custom function (e.g., fill NaNs with a specific number)", value=100.0)
+        if columns_to_custom_impute:
+            for column in columns_to_custom_impute:
+                df[column] = df[column].apply(lambda x: custom_value if pd.isna(x) else x)
+            st.write("DataFrame after Custom Function Imputation")
+            st.write(df)
+
     # Call the save function
     save_dataframe(df)
 
 def encode_categorical_variables(df):
-    
+
     if st.checkbox("Label Encoding"):
         st.subheader("Label Encoding")
         columns = df.select_dtypes(include=['object', 'category']).columns
@@ -572,7 +665,6 @@ def encode_categorical_variables(df):
                 st.write(encoding_info)
             else:
                 st.warning("Please order all unique values for selected columns.")
-               
 
     if st.checkbox("One-hot Encoding"):
         st.subheader("One-hot Encoding")
@@ -584,8 +676,19 @@ def encode_categorical_variables(df):
             df = pd.concat([df, encoded_df], axis=1)
             df = df.drop(columns=columns)
             st.write("Dataframe after One-hot Encoding", df)
-        # Call the save function
-    save_dataframe(df)    
+        
+    if st.checkbox("Binary Encoding"):
+        st.subheader("Binary Encoding")
+        columns = st.multiselect("Select columns for binary encoding", df.select_dtypes(include=['object', 'category']).columns)
+        if columns:
+            encoder = ce.BinaryEncoder(cols=columns)
+            df = encoder.fit_transform(df)
+            st.write("Dataframe after Binary Encoding", df)
+
+    # Call the save function
+    save_dataframe(df)
+
+
 
 def scale_normalize_data(df):
     st.sidebar.subheader("Scaling/Normalizing going on...")
@@ -741,6 +844,7 @@ def feature_engineering(df):
                 st.write("DataFrame after mapping values")
                 st.write(df)
     save_dataframe(df)   
+
 
 
 def machine_learning(df):
