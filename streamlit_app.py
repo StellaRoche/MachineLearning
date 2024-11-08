@@ -78,7 +78,7 @@ import plotly.express as px
 def main():
     initialize_session_state()
     apply_custom_css()
-    st.sidebar.title("EasyML")
+    st.sidebar.title("StepIntoML")
     st.sidebar.markdown("<p style='font-size: 12px; color: grey;'><i>Success is just a step away!</i></p>", unsafe_allow_html=True)
     #Upload and DataFrame Selection
     file_upload()
