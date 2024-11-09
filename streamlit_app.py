@@ -85,7 +85,7 @@ def main():
     
     # Main Tabs
      # Main Tabs
-    tabs = st.tabs(["Exploration", "Hypothesis","Preprocessing", "Machine Learning","Bonus"])
+    tabs = st.tabs(["Exploration", "Hypothesis", "Preprocessing", "Machine Learning", "Bonus"])
     
     selected_df = st.sidebar.selectbox("Select DataFrame", list(st.session_state.dataframes.keys()))
     
