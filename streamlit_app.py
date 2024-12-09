@@ -767,7 +767,7 @@ def create_new_column(df):
     save_dataframe(df)
 
 def feature_engineering(df):
-    
+
     # Convert a column to datetime
     if st.checkbox("Convert Column to Datetime"):
         st.subheader("Convert Column to Datetime")
@@ -779,7 +779,7 @@ def feature_engineering(df):
                 st.write(df.head())
             except Exception as e:
                 st.error(f"Error converting column to datetime: {e}")
-    
+
     # Extracting date features
     if st.checkbox("Extract Date Features"):
         st.subheader("Extract Date Features")
@@ -806,14 +806,14 @@ def feature_engineering(df):
                 st.write(df)
             except Exception as e:
                 st.error(f"Error creating new column: {e}")
-    
+
     # Group by and aggregate options
     if st.checkbox("Group By and Aggregate"):
         st.subheader("Group By and Aggregate")
         group_by_column = st.selectbox("Select column to group by", df.columns)
         aggregate_column = st.selectbox("Select column to aggregate", df.columns)
         aggregation_func = st.selectbox("Select aggregation function", ["Mean", "Sum", "Count", "Max", "Min"])
-        
+
         if group_by_column and aggregate_column and aggregation_func:
             agg_func_map = {
                 "Mean": 'mean',
@@ -826,7 +826,7 @@ def feature_engineering(df):
             grouped_df = df.groupby(group_by_column).agg({aggregate_column: aggregation}).reset_index()
             st.write("Grouped and Aggregated DataFrame")
             st.write(grouped_df)
-    
+
     # Mapping values
     if st.checkbox("Map Values"):
         st.subheader("Map Values")
@@ -843,9 +843,24 @@ def feature_engineering(df):
                 df[column_to_map] = df[column_to_map].map(value_mapping)
                 st.write("DataFrame after mapping values")
                 st.write(df)
-    save_dataframe(df)   
 
+    # Splitting a column based on a character
+    if st.checkbox("Split Column by Character"):
+        st.subheader("Split Column by Character")
+        column_to_split = st.selectbox("Select column to split", df.columns)
+        split_char = st.text_input("Enter character to split column by")
+        if column_to_split and split_char:
+            try:
+                split_columns = df[column_to_split].str.split(split_char, expand=True)
+                split_columns.columns = [f"{column_to_split}_part{i}" for i in range(split_columns.shape[1])]
+                df = pd.concat([df, split_columns], axis=1)
+                st.write("DataFrame after splitting column")
+                st.write(df)
+            except Exception as e:
+                st.error(f"Error splitting column: {e}")
 
+    # Save the DataFrame
+    save_dataframe(df)
 
 def machine_learning(df):
       
