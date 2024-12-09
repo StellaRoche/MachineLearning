@@ -766,8 +766,36 @@ def create_new_column(df):
             st.error(f"Error creating new column: {e}")
     save_dataframe(df)
 
-def feature_engineering(df):
 
+def feature_engineering(df):
+    # Convert a column to a different data type
+    if st.checkbox("Change Column Data Type"):
+        st.subheader("Change Column Data Type")
+        column_to_change = st.selectbox("Select column to change data type", df.columns)
+        new_data_type = st.selectbox(
+            "Select new data type", 
+            ["int", "float", "str", "bool", "category"]
+        )
+        
+        if column_to_change and new_data_type:
+            try:
+                if new_data_type == "int":
+                    df[column_to_change] = df[column_to_change].astype(int)
+                elif new_data_type == "float":
+                    df[column_to_change] = df[column_to_change].astype(float)
+                elif new_data_type == "str":
+                    df[column_to_change] = df[column_to_change].astype(str)
+                elif new_data_type == "bool":
+                    df[column_to_change] = df[column_to_change].astype(bool)
+                elif new_data_type == "category":
+                    df[column_to_change] = df[column_to_change].astype("category")
+                
+                st.write(f"Column '{column_to_change}' successfully converted to {new_data_type}.")
+                st.write(df.head())
+            except Exception as e:
+                st.error(f"Error converting column to {new_data_type}: {e}")
+
+    
     # Convert a column to datetime
     if st.checkbox("Convert Column to Datetime"):
         st.subheader("Convert Column to Datetime")
