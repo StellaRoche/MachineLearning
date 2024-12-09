@@ -1096,7 +1096,7 @@ def show_source_code():
             "column_datatypes",
             "find_unique_values",
             
-            "display_graphs"
+            "display_graphs",
             "hypothesis_testing",
             "data_cleaning_and_preprocessing",
             "handle_missing_values",
