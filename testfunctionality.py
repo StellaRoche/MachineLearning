@@ -891,7 +891,6 @@ def feature_engineering(df):
     save_dataframe(df)
 
 def machine_learning(df):
-      
     if df is not None and st.checkbox("Perform machine learning"):
         st.subheader("Machine Learning")
         
@@ -900,15 +899,10 @@ def machine_learning(df):
         target_column = st.selectbox("Select target column", df.columns)
 
         show_feature_selection = st.checkbox("Show Feature Selection Options")
-    
-
         
         all_feature_columns = [col for col in df.columns if col != target_column]
-        # Display feature columns selection
         if show_feature_selection:
             features = st.multiselect("Select Feature Columns", all_feature_columns, default=all_feature_columns)
-        
-        
         
             test_size = st.slider("Select test size", 0.1, 0.5, 0.2)
             random_state = st.slider("Select random state", 0, 100, 42)
@@ -920,19 +914,14 @@ def machine_learning(df):
             
             tune_regression = st.checkbox("Enable Hyperparameter Tuning for Regression Models", value=True)
             tune_classification = st.checkbox("Enable Hyperparameter Tuning for Classification Models", value=True)
-            tune_nn = st.checkbox("Enable Hyperparameter Tuning for Neural Networks", value=True)
-
+            
             if problem_type == "Regression":
                 regression_models = {
                     "Linear Regression": LinearRegression(),
                     "Ridge Regression": Ridge(),
                     "Lasso Regression": Lasso(),
-                    "ElasticNet": ElasticNet(),
                     "Decision Tree Regressor": DecisionTreeRegressor(),
                     "Random Forest Regressor": RandomForestRegressor(),
-                    "Gradient Boosting Regressor": GradientBoostingRegressor(),
-                    "SVR": SVR(),
-                    "LightGBM Regressor": lgb.LGBMRegressor()
                 }
                 selected_models = st.multiselect("Select regression models", list(regression_models.keys()), default=list(regression_models.keys()))
                 
@@ -940,93 +929,60 @@ def machine_learning(df):
                     fit_intercept = st.checkbox("Linear Regression - Fit Intercept", True)
                     hyperparameters["Linear Regression"] = {"fit_intercept": fit_intercept}
                     
-                if "Ridge Regression" in selected_models and tune_regression:
-                    alpha = st.slider("Ridge Regression - Alpha", 0.01, 10.0, 1.0)
-                    hyperparameters["Ridge Regression"] = {"alpha": alpha}
-                    
-                if "Lasso Regression" in selected_models and tune_regression:
-                    alpha = st.slider("Lasso Regression - Alpha", 0.01, 10.0, 1.0)
-                    hyperparameters["Lasso Regression"] = {"alpha": alpha}
-                    
-                if "ElasticNet" in selected_models and tune_regression:
-                    alpha = st.slider("ElasticNet - Alpha", 0.01, 10.0, 1.0)
-                    l1_ratio = st.slider("ElasticNet - L1 Ratio", 0.0, 1.0, 0.5)
-                    hyperparameters["ElasticNet"] = {"alpha": alpha, "l1_ratio": l1_ratio}
-                    
             elif problem_type == "Classification":
                 classification_models = {
                     "Logistic Regression": LogisticRegression(),
                     "Decision Tree": DecisionTreeClassifier(),
                     "Random Forest": RandomForestClassifier(),
-                    "Gradient Boosting": GradientBoostingClassifier(),
-                    "SVM": SVC(),
-                    "LightGBM": lgb.LGBMClassifier(),
-                    "K-Nearest Neighbors": KNeighborsClassifier(),
-                    "Naive Bayes": GaussianNB()
                 }
                 selected_models = st.multiselect("Select classification models", list(classification_models.keys()), default=list(classification_models.keys()))
-                
-                if "Logistic Regression" in selected_models and tune_classification:
-                    solver = st.selectbox("Logistic Regression - Solver", ["liblinear", "saga", "newton-cg", "lbfgs"])
-                    penalty_options = ["l1", "l2", "elasticnet", None] if solver in ["saga", "lbfgs"] else ["l1", "l2"]
-                    penalty = st.selectbox("Logistic Regression - Penalty", penalty_options)
-                    C = st.slider("Logistic Regression - C", 0.001, 10.0, 1.0)
-                    max_iter = st.slider("Logistic Regression - Max Iter", 50, 500, 100)
-                    hyperparameters["Logistic Regression"] = {"C": C, "solver": solver, "penalty": penalty, "max_iter": max_iter}
-                    
-                if "Decision Tree" in selected_models and tune_classification:
-                    max_depth = st.slider("Decision Tree - Max Depth", 1, 20, 10)
-                    min_samples_split = st.slider("Decision Tree - Min Samples Split", 2, 20, 2)
-                    hyperparameters["Decision Tree"] = {"max_depth": max_depth, "min_samples_split": min_samples_split}
-                    
             
-                                    
             if st.button("Train models"):
                 try:
-                    if problem_type in ["Regression", "Classification"]:
-                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
-                        
-                        results = []
-                        for name in selected_models:
-                            if problem_type == "Regression":
-                                model = regression_models[name]
-                                if name in hyperparameters:
-                                    model.set_params(**hyperparameters[name])
-                                model.fit(X_train, y_train)
-                                predictions = model.predict(X_test)
-                                mse = mean_squared_error(y_test, predictions)
-                                r2 = r2_score(y_test, predictions)
-                                results.append({"Model": name, "Mean Squared Error": mse, "R2 Score": r2})
-                            
-                            elif problem_type == "Classification":
-                                model = classification_models[name]
-                                if name in hyperparameters:
-                                    model.set_params(**hyperparameters[name])
-                                model.fit(X_train, y_train)
-                                predictions = model.predict(X_test)
-                                accuracy = accuracy_score(y_test, predictions)
-                                precision = precision_score(y_test, predictions, average='weighted')
-                                recall = recall_score(y_test, predictions, average='weighted')
-                                f1 = f1_score(y_test, predictions, average='weighted')
-                                results.append({"Model": name, "Accuracy": accuracy, "Precision": precision, "Recall": recall, "F1 Score": f1})
-                        
-                        st.write(f"{problem_type} model performance:")
-                        st.write(pd.DataFrame(results))
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
                     
-                    elif problem_type == "Unsupervised Learning":
-                        for name in selected_models:
-                            model = unsupervised_models[name]
-                            if name == "PCA" or name == "t-SNE":
-                                transformed_data = model.fit_transform(X)
-                                st.write(f"{name} transformed data:")
-                                st.write(transformed_data)
-                                if name == "PCA":
-                                    st.write("Explained variance ratio:")
-                                    st.write(model.explained_variance_ratio_)
-                            
+                    models = regression_models if problem_type == "Regression" else classification_models
+                    
+                    results = []
+                    trained_models = {}
+                    
+                    for name in selected_models:
+                        model = models[name]
+                        if name in hyperparameters:
+                            model.set_params(**hyperparameters[name])
+                        model.fit(X_train, y_train)
+                        trained_models[name] = model
+                        
+                        if problem_type == "Regression":
+                            predictions = model.predict(X_test)
+                            mse = mean_squared_error(y_test, predictions)
+                            r2 = r2_score(y_test, predictions)
+                            results.append({"Model": name, "MSE": mse, "R2 Score": r2})
+                        elif problem_type == "Classification":
+                            predictions = model.predict(X_test)
+                            accuracy = accuracy_score(y_test, predictions)
+                            f1 = f1_score(y_test, predictions, average='weighted')
+                            results.append({"Model": name, "Accuracy": accuracy, "F1 Score": f1})
+                    
+                    st.write("Model performance:")
+                    st.write(pd.DataFrame(results))
+                    
+                    st.subheader("Test User Inputs")
+                    selected_model = st.selectbox("Select a model for prediction", list(trained_models.keys()))
+                    input_values = {}
+                    
+                    for feature in features:
+                        input_values[feature] = st.number_input(f"Enter value for {feature}", value=float(df[feature].mean()))
+                    
+                    if st.button("Predict Outcome"):
+                        model = trained_models[selected_model]
+                        input_df = pd.DataFrame([input_values])
+                        prediction = model.predict(input_df)
+                        st.success(f"Predicted Outcome: {prediction[0]}")
                 
                 except Exception as e:
-                    st.error(f"An error occurred during model training: {e}")
+                    st.error(f"An error occurred during model training or prediction: {e}")
+
 
 def bonus(df):
     sub_menu = st.selectbox("Select an Option", [
